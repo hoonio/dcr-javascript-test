@@ -4,8 +4,11 @@
 		<h4>By country</h4>
 		<v-btn @click="criterion = 'population'">Population size</v-btn>
 		<v-btn @click="criterion = 'borders'">Number of borders</v-btn>
-		<v-btn @click="criterion = 'timezones'">Number of Timezones</v-btn>
+		<v-btn @click="criterion = 'timezones'">Number of timezones</v-btn>
 		<v-btn @click="criterion = 'languages'">Number of languages</v-btn>
+		<h4>By region</h4>
+		<v-btn @click="criterion = 'countries'">Number of countries</v-btn>
+		<v-btn @click="criterion = 'regiontimezone'">Number of unique timezones</v-btn>
 		<svg id="bubble-chart"></svg>
 		<div class="tooltip">
 			<h2></h2>
@@ -51,7 +54,7 @@
 		}),
 		watch: {
 			criterion(newCrit) {
-				console.log("criterion set", newCrit);
+				// console.log("criterion set", newCrit);
         this.renderData = this.groupByContinent(newCrit)
       },
       renderData(newDataSet) {
@@ -61,16 +64,39 @@
 		},
 		methods: {
 			groupByContinent: (criterion) => {
-				console.log("re-data", criterion);
-				const dataToRender = countries.map((cou) => ({
-					alpha3Code: cou.alpha3Code,
-					name: cou.name,
-					display: displayFigure(criterion, cou),
-				}));
-				return dataToRender;
+        if (criterion === 'countries'){
+          const regions = countries.reduce((rv, x) => {
+            (rv[x['region']] = rv[x['region']] || []).push(x['name'])
+            return rv
+          }, {})
+          const withCount = Object.keys(regions).map(key => ({
+            alpha3Code: key,
+            name: key,
+            display: regions[key].length,
+          }))
+          return withCount
+        } else if  (criterion === 'regiontimezone'){
+          const regions = countries.reduce((rv, x) => {
+            (rv[x['region']] = rv[x['region']] || []).push(x['timezones'])
+            return rv
+          }, {})
+          const withCount = Object.keys(regions).map(key => ({
+            alpha3Code: key,
+            name: key,
+            display: (regions[key].flat().filter((value, index, arr) => arr.indexOf(value) === index)).length,
+          }))
+          return withCount
+        } else {
+          const dataToRender = countries.map((cou) => ({
+            alpha3Code: cou.alpha3Code,
+            name: cou.name,
+            display: displayFigure(criterion, cou),
+          }));
+          return dataToRender;
+        }
+
 			},
 			renderBubbles(dataToPlot) {
-				console.log("render", this.criterion);
 				const bubble = (data) =>
 					d3.pack().size([this.width, this.height]).padding(2)(
 						d3.hierarchy({ children: data }).sum((d) => d.display)
@@ -141,7 +167,6 @@
 			},
 		},
 		mounted() {
-			console.log("mounted");
       this.renderData = this.groupByContinent('population')
 		},
 	};
