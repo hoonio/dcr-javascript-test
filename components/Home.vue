@@ -10,7 +10,7 @@
 		<v-btn @click="criterion = 'countries'">Number of countries</v-btn>
 		<v-btn @click="criterion = 'regiontimezone'">Number of unique timezones</v-btn>
 		<svg id="bubble-chart"></svg>
-		<div class="tooltip">
+		<div class='tooltip' v-bind:style="tooltipStyles">
 			<h2></h2>
 			<span></span>
 		</div>
@@ -25,18 +25,12 @@
 
 	const displayFigure = (criterion, data) => {
 		switch (criterion) {
-			case "population":
-				return data.population;
 			case "borders":
 				return data.borders.length;
 			case "timezones":
 				return data.timezones.length;
 			case "languages":
 				return data.languages.length;
-			case "countries":
-				return data.population;
-			case "regiontimezone":
-				return data.population;
 			default:
 				return data.population;
 		}
@@ -50,7 +44,15 @@
 			criterion: "population",
 			renderData: [],
 			width: 1200,
-			height: 600,
+      height: 600,
+      tooltipStyles: {
+        'position': 'absolute',
+        'visibility': 'hidden',
+        'background-color': '#111',
+        'font-family': 'sans-serif',
+        'max-width': '500px',
+        'color': '#fff',
+      }
 		}),
 		watch: {
 			criterion(newCrit) {
@@ -119,12 +121,12 @@
 
 				const circle = node
 					.append("circle")
-					.style("fill", (d) => "#333")
+					.style("fill", (d) => "#666")
 					.on("mouseover", function (e, d) {
-						tooltip.select("h2").attr("href", d.data.region).text(d.data.name);
-						tooltip.select("span").text(d.data.capital);
+						tooltip.select("h2").text(d.data.name);
+						tooltip.select("span").text(d.data.display);
 						tooltip.style("visibility", "visible");
-						d3.select(this).style("stroke", "#222");
+						d3.select(this).style("stroke", "#fff");
 					})
 					.on("mousemove", (e) =>
 						tooltip
@@ -139,12 +141,10 @@
 
 				const label = node
 					.append("text")
-					.attr("dy", 2)
-					.attr("dx", 2)
-					.text((d) => d.data.alpha3Code);
-				// .append("text")
-				// .attr("dy", 2)
-				// .text((d) => d.data.population);
+          .attr('font-size', d => `${d.r /3}px`)
+					.attr("dy", d => d.r/6)
+					.attr("dx", d => -d.r/3)
+          .text(d =>d.data.alpha3Code)
 
 				node
 					.transition()

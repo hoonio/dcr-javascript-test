@@ -1,5 +1,5 @@
 <template>
   <div>
-    <Home>VueHome</Home>
+    <Home>DCR Javascript Test</Home>
   </div>
 </template>
